@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom'; // Ensure you're using React Router
+import { Link, useNavigate } from 'react-router-dom'; // Ensure you're using React Router
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
@@ -13,6 +13,7 @@ const SignUp: React.FC = () => {
     //role: '',
   });
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,8 +30,9 @@ const SignUp: React.FC = () => {
 
     setTimeout(async () => {
       try {
-        const response = await axios.post('/register', formData);
+        const response = await axios.post('http://localhost:5000/register', formData, { withCredentials: true });
         toast.success(response.data.message || 'Registration successful!');
+        navigate('/signin');
       } catch (error) {
         console.log(error);
         toast.error('Error registering user');

@@ -11,6 +11,7 @@ import MedicalForm from './pages/main/MedicalForm';
 import Main from './pages/dashboard/Main';
 import Dashboard from './pages/dashboard/Dashboard';
 import Users from './pages/dashboard/Users';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
   return (
@@ -21,14 +22,40 @@ const App = () => {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/" element={<LandingPage />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/contact" element={<Contact />} />
         <Route path="/forgotpassword" element={<ForgotPassword />} />
         <Route path="/resetpassword" element={<ResetPassword />} />
-        <Route path="/details" element={<MedicalForm />} />
-
-        {/* Main Layout with Sidebar */}
-        <Route path="/main" element={<Main />}>
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute requiredRole="user">
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <ProtectedRoute requiredRole="user">
+              <Contact />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/details"
+          element={
+            <ProtectedRoute requiredRole="user">
+              <MedicalForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/main"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Main />
+            </ProtectedRoute>
+          }
+        >
           {/* Nested Routes for Dashboard */}
           <Route index element={<Navigate to="dashboard" />} />
           <Route path="dashboard" element={<Dashboard />} />
