@@ -1,37 +1,42 @@
-
-import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import Cookie from 'js-cookie';
 
-// Define the types for the props
-interface ProtectedRouteProps {
-  children: React.ReactNode; // ReactNode for the wrapped component
-  requiredRole?: string;     // Optional role requirement
+interface DecodedToken {
+  user_id: number;
+  role: string;
+  exp: number;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole }) => {
-  // Get the JWT token from cookies
-  const token = document.cookie.split('; ').find(row => row.startsWith('access_token='));
+const ProtectedRoute = ({ children, allowedRoles }: { children: JSX.Element; allowedRoles: string[] }) => {
+  const token = Cookie.get('token'); // Replace with your token retrieval logic
+  console.log(token);
 
   if (!token) {
-    // Redirect to login if no token is found
+    // If no token, redirect to signin
     return <Navigate to="/signin" replace />;
   }
 
   try {
-    // Decode the token to extract user info
-    const decodedToken = jwtDecode<{ role: string }>(token.split('=')[1]);
-    const userRole = decodedToken.role;
+    const decoded: DecodedToken = jwtDecode(token);
 
-    // Check if the user's role matches the required role
-    if (requiredRole && requiredRole !== userRole) {
-      return <Navigate to="/signin" replace />; // Redirect if role doesn't match
+    // Check if the token is expired
+    const currentTime = Date.now() / 1000; // Current time in seconds
+    if (decoded.exp < currentTime) {
+      Cookie.remove('token'); // Clear expired token
+      return <Navigate to="/signin" replace />;
     }
 
-    // Render the protected component
-    return <>{children}</>;
+    // Check if the user's role is allowed for the route
+    if (!allowedRoles.includes(decoded.role)) {
+      // Redirect unauthorized users to a default page (e.g., "/home")
+      return <Navigate to="/home" replace />;
+    }
+
+    return children; // Render the protected component
   } catch (error) {
-    // If there's an error decoding the token, redirect to login
+    console.error("Invalid token:", error);
+    Cookie.remove('token'); // Clear invalid token
     return <Navigate to="/signin" replace />;
   }
 };

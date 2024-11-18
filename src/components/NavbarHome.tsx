@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const NavbarHome: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -11,6 +14,18 @@ const NavbarHome: React.FC = () => {
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/logout', { withCredentials: true });
+      toast.success(response.data.message);
+      console.log(response.data);
+      navigate('/signin');
+    } catch (error) {
+      console.error(error);
+      toast.error("Logout failed. Please try again.");
+    }
   };
 
   return (
@@ -28,19 +43,19 @@ const NavbarHome: React.FC = () => {
           <Link to="/home" className="hover:text-blue-200 transition duration-200">Home</Link>
           <Link to="/contact" className="hover:text-blue-200 transition duration-200">Contact</Link>
           <Link to="/details" className="hover:text-blue-200 transition duration-200">Details</Link>
-          <Link to="/logout" className="flex items-center space-x-2 hover:text-blue-200 transition duration-200">
+          <button
+            onClick={handleLogout}
+            className="flex items-center space-x-2 hover:text-blue-200 transition duration-200"
+          >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7" />
             </svg>
             <span>Logout</span>
-          </Link>
+          </button>
         </div>
 
         {/* Mobile Menu Button */}
-        <button
-          onClick={toggleMobileMenu}
-          className="md:hidden text-white focus:outline-none"
-        >
+        <button onClick={toggleMobileMenu} className="md:hidden text-white focus:outline-none">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-6 w-6"
@@ -65,12 +80,18 @@ const NavbarHome: React.FC = () => {
           <Link to="/home" className="block hover:text-blue-200 transition duration-200" onClick={closeMobileMenu}>Home</Link>
           <Link to="/contact" className="block hover:text-blue-200 transition duration-200" onClick={closeMobileMenu}>Contact</Link>
           <Link to="/details" className="block hover:text-blue-200 transition duration-200" onClick={closeMobileMenu}>Details</Link>
-          <Link to="/logout" className="flex items-center space-x-2 hover:text-blue-200 transition duration-200" onClick={closeMobileMenu}>
+          <button
+            onClick={() => {
+              handleLogout();
+              closeMobileMenu();
+            }}
+            className="flex items-center space-x-2 hover:text-blue-200 transition duration-200"
+          >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7" />
             </svg>
             <span>Logout</span>
-          </Link>
+          </button>
         </motion.div>
       )}
     </nav>

@@ -24,10 +24,12 @@ const App = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/forgotpassword" element={<ForgotPassword />} />
         <Route path="/resetpassword" element={<ResetPassword />} />
+
+        {/* Protected Routes */}
         <Route
           path="/home"
           element={
-            <ProtectedRoute requiredRole="user">
+            <ProtectedRoute allowedRoles={['user', 'admin']}>
               <Home />
             </ProtectedRoute>
           }
@@ -35,7 +37,7 @@ const App = () => {
         <Route
           path="/contact"
           element={
-            <ProtectedRoute requiredRole="user">
+            <ProtectedRoute allowedRoles={['user', 'admin']}>
               <Contact />
             </ProtectedRoute>
           }
@@ -43,23 +45,39 @@ const App = () => {
         <Route
           path="/details"
           element={
-            <ProtectedRoute requiredRole="user">
+            <ProtectedRoute allowedRoles={['user', 'admin']}>
               <MedicalForm />
             </ProtectedRoute>
           }
         />
+
+        {/* Admin-Only Routes */}
         <Route
           path="/main"
           element={
-            <ProtectedRoute requiredRole="admin">
+            <ProtectedRoute allowedRoles={['admin']}>
               <Main />
             </ProtectedRoute>
           }
         >
           {/* Nested Routes for Dashboard */}
           <Route index element={<Navigate to="dashboard" />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="users" element={<Users />} />
+          <Route
+            path="dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="users"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Users />
+              </ProtectedRoute>
+            }
+          />
         </Route>
       </Routes>
     </>
