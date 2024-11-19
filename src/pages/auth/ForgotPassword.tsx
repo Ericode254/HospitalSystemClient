@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -23,11 +24,19 @@ const ForgotPassword: React.FC = () => {
       return;
     }
 
-    // Simulate API request (you would replace this with an actual request)
-    setTimeout(() => {
+    try {
+      // Call the backend to send the reset email
+      const response = await axios.post('http://localhost:5000/forgotpassword', { email });
+
+      if (response.status === 200) {
+        // Successfully sent the email
+        setIsSubmitted(true);
+      }
+    } catch (error) {
+      setError('An error occurred while sending the reset email. Please try again.');
+    } finally {
       setIsSubmitting(false);
-      setIsSubmitted(true);
-    }, 2000);
+    }
   };
 
   return (

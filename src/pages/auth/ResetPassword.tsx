@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useParams, useNavigate } from 'react-router-dom';
 
 const ResetPassword: React.FC = () => {
   const [password, setPassword] = useState('');
@@ -6,9 +8,30 @@ const ResetPassword: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState('');
+  const { token } = useParams<{ token: string }>();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!token) {
+      setError('Invalid or missing reset token');
+    }
+  }, [token]);
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+
+    // Password strength validation (basic example)
+    if (newPassword.length < 8) {
+      setPasswordStrength('Password is too short');
+    } else if (!/[A-Z]/.test(newPassword)) {
+      setPasswordStrength('Password must contain at least one uppercase letter');
+    } else if (!/[0-9]/.test(newPassword)) {
+      setPasswordStrength('Password must contain at least one number');
+    } else {
+      setPasswordStrength('');
+    }
   };
 
   const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,11 +50,34 @@ const ResetPassword: React.FC = () => {
       return;
     }
 
-    // Simulate an API request (you would replace this with an actual request)
-    setTimeout(() => {
+    // Check for password strength
+    if (passwordStrength) {
+      setError('Please ensure your password meets the required strength criteria');
       setIsSubmitting(false);
-      setIsSuccess(true);
-    }, 2000);
+      return;
+    }
+
+    try {
+      // Sending the password reset request to the backend API
+      const response = await axios.post(`http://localhost:5000/resetpassword/${token}`, { newPassword: password });
+      setIsSubmitting(false);
+      if (response.status === 200) {
+        setIsSuccess(true);
+        // Optionally redirect user after success
+        setTimeout(() => {
+          navigate('/signin');
+        }, 2000);
+      }
+    } catch (err) {
+      setIsSubmitting(false);
+      if (err) {
+        // Backend error response
+        setError('An error occurred. Please try again later.');
+      } else {
+        // Network or other errors
+        setError('Network error. Please try again later.');
+      }
+    }
   };
 
   return (
@@ -60,6 +106,7 @@ const ResetPassword: React.FC = () => {
                 className="mt-2 p-3 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
                 placeholder="Enter new password"
               />
+              {passwordStrength && <p className="text-red-500 text-xs mt-1">{passwordStrength}</p>}
             </div>
 
             <div>

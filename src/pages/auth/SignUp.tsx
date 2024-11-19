@@ -8,6 +8,7 @@ const SignUp: React.FC = () => {
     firstName: '',
     lastName: '',
     phoneNumber: '',
+    email: '',
     username: '',
     password: '',
     //role: '',
@@ -21,7 +22,7 @@ const SignUp: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.firstName || !formData.lastName || !formData.phoneNumber || !formData.username || !formData.password) {
+    if (!formData.firstName || !formData.lastName || !formData.phoneNumber || !formData.username || !formData.password || !formData.email) {
       toast.error('All fields are required');
       return;
     }
@@ -72,6 +73,16 @@ const SignUp: React.FC = () => {
               className="w-1/2 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
+
           {/* Other Fields */}
           <input
             type="text"
