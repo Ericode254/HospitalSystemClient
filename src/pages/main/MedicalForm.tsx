@@ -1,23 +1,25 @@
 import React, { useState } from 'react';
 import NavbarHome from '../../components/NavbarHome';
+import axios from 'axios';
 
 const MedicalForm: React.FC = () => {
   const [formData, setFormData] = useState({
     gender: '',
     age: '',
-    hypertension: 0,
+    hypertension: '',
+    heart_disease: '',
     ever_married: '',
     work_type: '',
-    residence_type: '',
+    Residence_type: '',
     avg_glucose_level: '',
     bmi: '',
     smoking_status: '',
-    stroke: 0,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSuccess, setFormSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [prediction, setPrediction] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -31,19 +33,62 @@ const MedicalForm: React.FC = () => {
     e.preventDefault();
     setError('');
     setIsSubmitting(true);
+    setPrediction(null);
 
-    // Basic validation (could be extended)
-    if (!formData.gender || !formData.age || !formData.ever_married || !formData.work_type || !formData.residence_type) {
+    const {
+      gender,
+      age,
+      hypertension,
+      heart_disease,
+      ever_married,
+      work_type,
+      Residence_type,
+      avg_glucose_level,
+      bmi,
+      smoking_status,
+    } = formData;
+
+    // Validate all fields
+    if (
+      !gender ||
+      !age ||
+      hypertension === '' ||
+      heart_disease === '' ||
+      !ever_married ||
+      !work_type ||
+      !Residence_type ||
+      !avg_glucose_level ||
+      !bmi ||
+      !smoking_status
+    ) {
       setError('Please fill in all the required fields.');
       setIsSubmitting(false);
       return;
     }
 
-    // Simulate API submission (replace with actual backend logic)
-    setTimeout(() => {
+    // Check numeric values
+    if (
+      isNaN(Number(age)) ||
+      isNaN(Number(avg_glucose_level)) ||
+      isNaN(Number(bmi)) ||
+      Number(age) <= 0 ||
+      Number(avg_glucose_level) <= 0 ||
+      Number(bmi) <= 0
+    ) {
+      setError('Age, Average Glucose Level, and BMI must be valid positive numbers.');
       setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://localhost:5000/predict', formData);
+      setPrediction(response.data.stroke_risk);
       setFormSuccess(true);
-    }, 2000);
+    } catch (err) {
+      setError('Error submitting the form. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -57,9 +102,15 @@ const MedicalForm: React.FC = () => {
             <div className="text-center text-green-600">
               <h3 className="text-xl">Form Submitted Successfully</h3>
               <p>Your medical information has been saved.</p>
+              {prediction && (
+                <div className="mt-4">
+                  <p className="text-xl">Prediction: Stroke Risk - {prediction}</p>
+                </div>
+              )}
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Gender */}
               <div>
                 <label htmlFor="gender" className="block text-sm font-medium text-gray-700">
                   Gender
@@ -79,6 +130,7 @@ const MedicalForm: React.FC = () => {
                 </select>
               </div>
 
+              {/* Age */}
               <div>
                 <label htmlFor="age" className="block text-sm font-medium text-gray-700">
                   Age
@@ -95,6 +147,7 @@ const MedicalForm: React.FC = () => {
                 />
               </div>
 
+              {/* Hypertension */}
               <div>
                 <label htmlFor="hypertension" className="block text-sm font-medium text-gray-700">
                   Hypertension
@@ -107,11 +160,32 @@ const MedicalForm: React.FC = () => {
                   required
                   className="mt-2 p-3 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
                 >
-                  <option value={0}>No</option>
-                  <option value={1}>Yes</option>
+                  <option value="">Select</option>
+                  <option value="0">No</option>
+                  <option value="1">Yes</option>
                 </select>
               </div>
 
+              {/* Heart Disease */}
+              <div>
+                <label htmlFor="heart_disease" className="block text-sm font-medium text-gray-700">
+                  Heart Disease
+                </label>
+                <select
+                  id="heart_disease"
+                  name="heart_disease"
+                  value={formData.heart_disease}
+                  onChange={handleChange}
+                  required
+                  className="mt-2 p-3 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                >
+                  <option value="">Select</option>
+                  <option value="0">No</option>
+                  <option value="1">Yes</option>
+                </select>
+              </div>
+
+              {/* Ever Married */}
               <div>
                 <label htmlFor="ever_married" className="block text-sm font-medium text-gray-700">
                   Ever Married
@@ -124,12 +198,13 @@ const MedicalForm: React.FC = () => {
                   required
                   className="mt-2 p-3 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
                 >
-                  <option value="">Select Option</option>
-                  <option value="Yes">Yes</option>
+                  <option value="">Select</option>
                   <option value="No">No</option>
+                  <option value="Yes">Yes</option>
                 </select>
               </div>
 
+              {/* Work Type */}
               <div>
                 <label htmlFor="work_type" className="block text-sm font-medium text-gray-700">
                   Work Type
@@ -142,33 +217,35 @@ const MedicalForm: React.FC = () => {
                   required
                   className="mt-2 p-3 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
                 >
-                  <option value="">Select Work Type</option>
-                  <option value="Children">Children</option>
-                  <option value="Govt_job">Govt_job</option>
-                  <option value="Never_worked">Never_worked</option>
+                  <option value="">Select</option>
                   <option value="Private">Private</option>
                   <option value="Self-employed">Self-employed</option>
+                  <option value="Govt_job">Govt Job</option>
+                  <option value="children">Children</option>
+                  <option value="Never_worked">Never worked</option>
                 </select>
               </div>
 
+              {/* Residence Type */}
               <div>
-                <label htmlFor="residence_type" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="Residence_type" className="block text-sm font-medium text-gray-700">
                   Residence Type
                 </label>
                 <select
-                  id="residence_type"
-                  name="residence_type"
-                  value={formData.residence_type}
+                  id="Residence_type"
+                  name="Residence_type"
+                  value={formData.Residence_type}
                   onChange={handleChange}
                   required
                   className="mt-2 p-3 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
                 >
-                  <option value="">Select Residence Type</option>
+                  <option value="">Select</option>
                   <option value="Urban">Urban</option>
                   <option value="Rural">Rural</option>
                 </select>
               </div>
 
+              {/* Average Glucose Level */}
               <div>
                 <label htmlFor="avg_glucose_level" className="block text-sm font-medium text-gray-700">
                   Average Glucose Level
@@ -185,9 +262,10 @@ const MedicalForm: React.FC = () => {
                 />
               </div>
 
+              {/* BMI */}
               <div>
                 <label htmlFor="bmi" className="block text-sm font-medium text-gray-700">
-                  BMI (Body Mass Index)
+                  BMI
                 </label>
                 <input
                   type="number"
@@ -201,6 +279,7 @@ const MedicalForm: React.FC = () => {
                 />
               </div>
 
+              {/* Smoking Status */}
               <div>
                 <label htmlFor="smoking_status" className="block text-sm font-medium text-gray-700">
                   Smoking Status
@@ -213,38 +292,23 @@ const MedicalForm: React.FC = () => {
                   required
                   className="mt-2 p-3 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
                 >
-                  <option value="">Select Smoking Status</option>
-                  <option value="Formerly smoked">Formerly smoked</option>
+                  <option value="">Select</option>
                   <option value="Never smoked">Never smoked</option>
+                  <option value="Formerly smoked">Formerly smoked</option>
                   <option value="Smokes">Smokes</option>
                   <option value="Unknown">Unknown</option>
                 </select>
               </div>
 
-              <div>
-                <label htmlFor="stroke" className="block text-sm font-medium text-gray-700">
-                  Stroke History
-                </label>
-                <select
-                  id="stroke"
-                  name="stroke"
-                  value={formData.stroke}
-                  onChange={handleChange}
-                  required
-                  className="mt-2 p-3 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
-                >
-                  <option value={0}>No</option>
-                  <option value={1}>Yes</option>
-                </select>
-              </div>
+              {/* Error Message */}
+              {error && <p className="text-red-500 text-center mt-4">{error}</p>}
 
-              {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
-
-              <div className="flex justify-center">
+              {/* Submit Button */}
+              <div className="flex justify-center mt-4">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`bg-blue-600 text-white px-6 py-2 rounded-md font-semibold ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
+                  className="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
                 >
                   {isSubmitting ? 'Submitting...' : 'Submit'}
                 </button>

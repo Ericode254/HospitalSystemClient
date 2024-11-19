@@ -10,7 +10,7 @@ interface DecodedToken {
 
 const ProtectedRoute = ({ children, allowedRoles }: { children: JSX.Element; allowedRoles: string[] }) => {
   const token = Cookie.get('token'); // Replace with your token retrieval logic
-  console.log(token);
+  //console.log(token);
 
   if (!token) {
     // If no token, redirect to signin
