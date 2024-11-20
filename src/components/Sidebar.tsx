@@ -1,14 +1,21 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Home, Group, Analytics, Settings, ExitToApp } from '@mui/icons-material';
+import { Home, Group, ExitToApp } from '@mui/icons-material';
 import { useLocation } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import axios from 'axios';
 
 const Sidebar: React.FC = () => {
   const location = useLocation(); // To track the current route and highlight the active link
 
-  const handleLogout = () => {
-    // Logic for logging out (e.g., clearing user session, redirecting, etc.)
-    console.log('User logged out');
+  const handleLogout = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/logout', { withCredentials: true });
+      toast.success(response.data.message);
+    } catch (error) {
+      console.error(error);
+      toast.error("Logout failed. Please try again.");
+    }
   };
 
   return (
@@ -32,20 +39,21 @@ const Sidebar: React.FC = () => {
         >
           <Group className="mr-3" /> Users
         </Link>
-        <Link
+        {/*          <Link
           to="other" // Relative path
           className={`text-white p-4 hover:bg-gray-700 flex items-center ${location.pathname === '/main/other' ? 'bg-gray-700' : ''}`}
         >
           <Analytics className="mr-3" /> Other Section
         </Link>
-        <Link
+       <Link
           to="settings" // Relative path
           className={`text-white p-4 hover:bg-gray-700 flex items-center ${location.pathname === '/main/settings' ? 'bg-gray-700' : ''}`}
         >
           <Settings className="mr-3" /> Settings
         </Link>
-      </div>
+*/}
 
+      </div>
       {/* Logout Button */}
       <div className="mt-auto p-4">
         <button
